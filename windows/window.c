@@ -1133,10 +1133,14 @@ static void wintw_set_raw_mouse_mode_pointer(TermWin *tw, bool activate)
 static void win_seat_connection_fatal(Seat *seat, const char *msg)
 {
     WinGuiSeat *wgs = container_of(seat, WinGuiSeat, seat);
-    char *title = dupprintf("%s Fatal Error", appname);
+
     show_mouseptr(wgs, true);
-    MessageBox(wgs->term_hwnd, msg, title, MB_ICONERROR | MB_OK);
-    sfree(title);
+
+    char *m = dupprintf("%s\r\n", msg);
+    win_seat_set_trust_status(seat, true);
+    seat_stderr_pl(seat, ptrlen_from_asciz(m));
+    win_seat_set_trust_status(seat, false); // For good measure
+    sfree(m);
 
     if (conf_get_int(wgs->conf, CONF_close_on_exit) == FORCE_ON)
         PostQuitMessage(1);
